@@ -1,4 +1,6 @@
 from LineTracker import *
+import json
+import os
 
 class FileTracker(object):
 
@@ -10,17 +12,27 @@ class FileTracker(object):
 		
 	def Load(self):
 		#'load to memory'
-		fileobj = open(self.File);
 		#append the head
 		self.Head = LineTracker("HEADER",None,None)
 		self.LineDict.append(self.Head)
 		#append lines
 		head = self.Head
+		#return if not exist 
+		if not os.path.exists(self.File):
+			return
+
+		fileobj = open(self.File);
 		for line in fileobj:
 			head.Next = LineTracker(line.rstrip('\n'), head,None)
 			head = head.Next
 			self.LineDict.append(head)
 		fileobj.close()
+
+	def Execute(self, actionset):	
+		actionlist = { 'ADD': lambda x : self.Add(x['pre'], x['lines']),
+		'REMOVE' : lambda x: self.Delete(x['lines'])
+		}
+		actionlist[actionset['action']](actionset)
 
 
 	def Write(self, outfile=None, mode='NORMAL'):
